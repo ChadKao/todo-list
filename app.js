@@ -1,12 +1,17 @@
 const express = require('express')
 const app = express()
+const db = require('./models') 
+const Todo = db.Todo
+
+
 
 app.get('/', (req, res) => {
   res.send('hello world!')
 })
 
 app.get('/todos', (req, res) => {
-  res.send('get all todos')
+  return Todo.findAll()
+    .then((todos) => res.send({todos}))
 })
 
 app.get('/todos/new', (req, res) => {
