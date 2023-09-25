@@ -1,17 +1,23 @@
 const express = require('express')
 const app = express()
-const db = require('./models') 
+const db = require('./models')
 const Todo = db.Todo
+const { engine } = require('express-handlebars')
+
+app.engine('hbs', engine({ extname: '.hbs' }))
+app.set('view engine', 'hbs')
+app.set('views', './views')
+
 
 
 
 app.get('/', (req, res) => {
-  res.send('hello world!')
+  res.render('index')
 })
 
 app.get('/todos', (req, res) => {
   return Todo.findAll()
-    .then((todos) => res.send({todos}))
+    .then((todos) => res.send({ todos }))
 })
 
 app.get('/todos/new', (req, res) => {
@@ -41,5 +47,4 @@ app.delete('/todos/:id', (req, res) => {
 
 app.listen(3000, () => {
   console.log('App is running on port 3000');
-  
 })
