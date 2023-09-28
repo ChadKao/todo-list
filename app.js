@@ -8,7 +8,7 @@ app.engine('hbs', engine({ extname: '.hbs' }))
 app.set('view engine', 'hbs')
 app.set('views', './views')
 
-
+app.use(express.urlencoded({ extended: true }))
 
 
 app.get('/', (req, res) => {
@@ -25,11 +25,15 @@ app.get('/todos', (req, res) => {
 })
 
 app.get('/todos/new', (req, res) => {
-  res.send('create todo')
+  return res.render('new')
 })
 
 app.post('/todos', (req, res) => {
-  res.send('add todo')
+  const name = req.body.name
+
+  return Todo.create({ name })
+    .then(() => res.redirect('/todos'))
+    .catch((err) => res.status(422).json(err))
 })
 
 app.get('/todos/:id', (req, res) => {
