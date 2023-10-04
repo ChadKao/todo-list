@@ -14,7 +14,7 @@ app.use(methodOverride('_method'))
 
 
 app.get('/', (req, res) => {
-  res.render('index')
+  res.redirect('/todos')
 })
 
 app.get('/todos', (req, res) => {
@@ -70,7 +70,9 @@ app.put('/todos/:id', (req, res) => {
 })
 
 app.delete('/todos/:id', (req, res) => {
-  res.send('delete todo')
+  return Todo.destroy({ where: { id: req.params.id } })
+    .then(() => res.redirect('/todos'))
+    .catch((err) => res.status(422).json(err))
 })
 
 
