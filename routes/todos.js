@@ -9,34 +9,30 @@ router.get('/', (req, res) => {
     attributes: ['id', 'name', 'isComplete'],
     raw: true
   })
-    .then((todos) => res.render('todos', { todos, message: req.flash('success') }))
-    .catch((err) => res.status(422).json(err))
+    .then((todos) => res.render('todos', { todos }))
+    .catch((error) => {
+      error.errorMessage = '資料取得失敗'
+      next(error)
+    })
 })
 
 router.get('/new', (req, res) => {
-  return res.render('new', { message: req.flash('error') })
+  return res.render('new')
 })
 
-router.post('/', (req, res) => {
-  try {
-    const name = req.body.name
+router.post('/', (req, res, next) => {
+  const name = req.body.name
 
-    return Todo.create({ name })
-      .then(() => {
-        req.flash('success', '新增成功!')
-        res.redirect('/todos')
-      })
+  return Todo.create({ name })
+    .then(() => {
+      req.flash('success', '新增成功!')
+      res.redirect('/todos')
+    })
 
-      .catch((err) => {
-        console.error(err);
-        req.flash('error', '新增失敗!')
-        res.redirect('back')
-      })
-  } catch (error) {
-    console.log(error);
-    res.redirect('back')
-  }
-
+    .catch((error) => {
+      error.errorMessage = '新增失敗'
+      next(error)
+    })
 })
 
 router.get('/:id', (req, res) => {
@@ -47,9 +43,12 @@ router.get('/:id', (req, res) => {
     raw: true
   })
     .then((todo) => {
-      res.render('todo', { todo, message: req.flash('success') })
+      res.render('todo', { todo })
     })
-    .catch((err) => res.status(422).json(err))
+    .catch((error) => {
+      error.errorMessage = '資料取得失敗'
+      next(error)
+    })
 })
 
 router.get('/:id/edit', (req, res) => {
@@ -60,7 +59,10 @@ router.get('/:id/edit', (req, res) => {
     raw: true
   })
     .then((todo) => res.render('edit', { todo }))
-    .catch((err) => res.status(422).json(err))
+    .catch((error) => {
+      error.errorMessage = '資料取得失敗'
+      next(error)
+    })
 })
 
 router.put('/:id', (req, res) => {
@@ -72,7 +74,10 @@ router.put('/:id', (req, res) => {
       req.flash('success', '修改成功!')
       res.redirect(`/todos/${id}`)
     })
-    .catch((err) => res.status(422).json(err))
+    .catch((error) => {
+      error.errorMessage = '修改失敗'
+      next(error)
+    })
 })
 
 router.delete('/:id', (req, res) => {
@@ -81,7 +86,10 @@ router.delete('/:id', (req, res) => {
       req.flash('success', '刪除成功!')
       res.redirect('/todos')
     })
-    .catch((err) => res.status(422).json(err))
+    .catch((error) => {
+      error.errorMessage = '刪除失敗'
+      next(error)
+    })
 })
 
 module.exports = router
