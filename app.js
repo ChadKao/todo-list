@@ -13,7 +13,6 @@ const errorHandler = require('./middlewares/error-handler')
 if (process.env.NODE_ENV === 'development') {
   require('dotenv').config()
 }
-console.log(process.env.SESSION_SECRET);
 
 app.engine('hbs', engine({ extname: '.hbs' }))
 app.set('view engine', 'hbs')

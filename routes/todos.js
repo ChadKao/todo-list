@@ -4,12 +4,20 @@ const router = express.Router()
 const db = require('../models')
 const Todo = db.Todo
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
+  const page = parseInt(req.query.page) || 1
+  const limit = 10
+
   return Todo.findAll({
     attributes: ['id', 'name', 'isComplete'],
     raw: true
   })
-    .then((todos) => res.render('todos', { todos }))
+    .then((todos) => res.render('todos', {
+      todos: todos.slice((page - 1) * limit, page * limit),
+      prev: page > 1 ? page - 1 : page,
+      next: page + 1,
+      page
+    }))
     .catch((error) => {
       error.errorMessage = '資料取得失敗'
       next(error)
@@ -35,7 +43,7 @@ router.post('/', (req, res, next) => {
     })
 })
 
-router.get('/:id', (req, res) => {
+router.get('/:id', (req, res, next) => {
   const id = req.params.id
 
   return Todo.findByPk(id, {
@@ -51,7 +59,7 @@ router.get('/:id', (req, res) => {
     })
 })
 
-router.get('/:id/edit', (req, res) => {
+router.get('/:id/edit', (req, res, next) => {
   const id = req.params.id
 
   return Todo.findByPk(id, {
@@ -65,7 +73,7 @@ router.get('/:id/edit', (req, res) => {
     })
 })
 
-router.put('/:id', (req, res) => {
+router.put('/:id', (req, res, next) => {
   const id = req.params.id
   const { name, isComplete } = req.body
 
@@ -80,7 +88,7 @@ router.put('/:id', (req, res) => {
     })
 })
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', (req, res, next) => {
   return Todo.destroy({ where: { id: req.params.id } })
     .then(() => {
       req.flash('success', '刪除成功!')
