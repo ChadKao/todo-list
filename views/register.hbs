@@ -1,6 +1,13 @@
 {{> navbar }}
 <h2>Register</h2>
+{{> message}}
 <form action="/users/register" method="post">
+  <div>
+    <label for="namw">Name</label>
+    <br>
+    <input type="text" name="name" placeholder="Enter name" id="name">
+  </div>
+
   <div>
     <label for="email">Email</label>
     <br>
