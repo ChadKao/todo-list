@@ -3,6 +3,31 @@ const router = express.Router();
 
 const db = require('../models')
 const User = db.User;
+const passport = require('passport')
+const localStrategy = require('passport-local')
+
+passport.use(new localStrategy({ usernameField: 'email' }, (email, password, done) => {
+  return User.findOne({
+    attributes: ['id', 'name','email', 'password'],
+    where: { email },
+    raw: true
+  })
+    .then(user => {
+      if (!user || user.password !== password) {
+        return done(null, false, { message: '帳號或密碼錯誤' })
+      }
+      return done(null, user)
+    })
+    .catch(error => {
+      error.errorMessage = '登入失敗'
+      done(error)
+    })
+}))
+
+passport.serializeUser((user, done) => {
+  const { id, email, name } = user
+  done(null, { id, email, name })
+})
 
 router.get('/', (req, res) => { res.redirect('/users/login') });
 
@@ -44,7 +69,11 @@ router.post('/register', (req, res, next) => {
 
 router.get('/login', (req, res) => { res.render('login') });
 
-router.post('/login', (req, res) => { res.send(req.body) });
+router.post('/login', passport.authenticate('local', {
+  successRedirect: '/todos',
+  failureRedirect: '/users/login',
+  failureFlash: true
+}));
 
 router.post('/logout', (req, res) => { res.send('logout') });
 
