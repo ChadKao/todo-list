@@ -29,6 +29,11 @@ passport.serializeUser((user, done) => {
   done(null, { id, email, name })
 })
 
+passport.deserializeUser((user, done) => {
+  const id = user.id
+  done(null, { id })
+})
+
 router.get('/', (req, res) => { res.redirect('/users/login') });
 
 router.get('/register', (req, res) => { res.render('register') });;
@@ -75,6 +80,12 @@ router.post('/login', passport.authenticate('local', {
   failureFlash: true
 }));
 
-router.post('/logout', (req, res) => { res.send('logout') });
+router.post('/logout', (req, res, next) => {
+  req.logout((error) => {
+    if (error) { return next(error) }
+    req.flash('success', '登出成功')
+    res.redirect('/users/login')
+  })
+});
 
 module.exports = router;

@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
+const authHandler = require('../middlewares/auth-handler')
+
 const todos = require('./todos')
 const users = require('./users')
 
-router.use('/todos', todos)
+router.use('/todos', authHandler, todos)
 router.use('/users', users)
 
 
