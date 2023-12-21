@@ -8,18 +8,24 @@ router.get('/', (req, res, next) => {
   const page = parseInt(req.query.page) || 1
   const limit = 10
 
-  return Todo.findAll({
+  return Todo.findAndCountAll({
     attributes: ['id', 'name', 'isComplete'],
     offset: (page - 1) * limit,
     limit,
     raw: true
   })
-    .then((todos) => res.render('todos', {
-      todos,
-      prev: page > 1 ? page - 1 : page,
-      next: page + 1,
-      page
-    }))
+    .then((result) => {
+      const todos = result.rows
+      const totalPages = Math.ceil(result.count / limit)
+
+      res.render('todos', {
+        todos,
+        prev: page > 1 ? page - 1 : page,
+        next: page < totalPages ? page + 1 : page,
+        page
+      })
+    }
+  )
     .catch((error) => {
       error.errorMessage = '資料取得失敗'
       next(error)
