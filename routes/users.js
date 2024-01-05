@@ -5,6 +5,7 @@ const db = require('../models')
 const User = db.User;
 const passport = require('passport')
 const localStrategy = require('passport-local')
+const bcrypt = require('bcryptjs')
 
 passport.use(new localStrategy({ usernameField: 'email' }, (email, password, done) => {
   return User.findOne({
@@ -13,10 +14,18 @@ passport.use(new localStrategy({ usernameField: 'email' }, (email, password, don
     raw: true
   })
     .then(user => {
-      if (!user || user.password !== password) {
+      if (!user) {
         return done(null, false, { message: '帳號或密碼錯誤' })
       }
-      return done(null, user)
+
+      return bcrypt.compare(password, user.password)
+        .then(isMatch => {
+          if (!isMatch) {
+            return done(null, false, { message: '帳號或密碼錯誤' })
+          }
+
+          return done(null, user)
+        })
     })
     .catch(error => {
       error.errorMessage = '登入失敗'
@@ -57,8 +66,15 @@ router.post('/register', (req, res, next) => {
         req.flash('error', '信箱已被註冊')
         return res.redirect('back')
       }
-      return User.create({ name, email, password })
-        .then(() => {
+      bcrypt.hash(password, 10)
+        .then(hash => {
+          return User.create({ name, email, password: hash })
+        })
+        .then((user) => {
+          if (!user) {
+            req.flash('error', '註冊失敗')
+            return res.redirect('back')
+          }
           req.flash('success', '註冊成功')
           res.redirect('/users/login')
         })
