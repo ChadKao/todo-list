@@ -5,7 +5,9 @@ const db = require('../models')
 const User = db.User;
 const passport = require('passport')
 const localStrategy = require('passport-local')
+const FacebookStrategy = require('passport-facebook')
 const bcrypt = require('bcryptjs')
+require('dotenv').config()
 
 passport.use(new localStrategy({ usernameField: 'email' }, (email, password, done) => {
   return User.findOne({
@@ -26,6 +28,32 @@ passport.use(new localStrategy({ usernameField: 'email' }, (email, password, don
 
           return done(null, user)
         })
+    })
+    .catch(error => {
+      error.errorMessage = '登入失敗'
+      done(error)
+    })
+}))
+
+passport.use(new FacebookStrategy({
+  clientID: process.env.FACEBOOK_CLIENT_ID,
+  clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+  profileFields: ['email', 'displayName']
+}, (accessToken, refreshToken, profile, done) => {
+  const { name, email } = profile._json
+  return User.findOne({
+    attributes: ['id', 'name', 'email'],
+    where: { email },
+    raw: true
+  })
+    .then(user => {
+      if (user) return done(null, user)
+      const randomPassword = Math.random().toString(36).slice(-8)
+      
+      return bcrypt.hash(randomPassword, 10)
+        .then(hash =>  User.create({ name, email, password: hash }))
+        .then(user => done(null, { id: user.id, email: user.email, name: user.name }))
     })
     .catch(error => {
       error.errorMessage = '登入失敗'
@@ -95,6 +123,14 @@ router.post('/login', passport.authenticate('local', {
   failureRedirect: '/users/login',
   failureFlash: true
 }));
+
+router.get('/login/facebook', passport.authenticate('facebook', { scope: ['email'] }))
+
+router.get('/oauth2/redirect/facebook', passport.authenticate('facebook', {
+  successRedirect: '/todos',
+  failureRedirect: '/users/login',
+  failureFlash: true
+}))
 
 router.post('/logout', (req, res, next) => {
   req.logout((error) => {
