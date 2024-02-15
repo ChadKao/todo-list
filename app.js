@@ -9,12 +9,12 @@ const session = require('express-session')
 const router = require('./routes')
 const messageHandler = require('./middlewares/message-handler')
 const errorHandler = require('./middlewares/error-handler')
-const passport = require('passport')
-
 
 if (process.env.NODE_ENV === 'development') {
   require('dotenv').config()
 }
+
+const passport = require('./config/passport')
 
 app.engine('hbs', engine({ extname: '.hbs' }))
 app.set('view engine', 'hbs')
